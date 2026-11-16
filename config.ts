@@ -4,17 +4,16 @@ import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 
 const ownerNumbers = new Set([
-    '5214436165999',
-    '905364919591'
+    '51928689473'
 ]);
 
 export const config = {
-    botName: 'Raiden-WaBot',
-    devName: 'Ryuzei-Ts',
+    botName: 'MINIONS bot',
+    devName: 'INGE',
     prefix: '.',
     owner: ownerNumbers,
-    banner: 'https://cdn.ryuzei.xyz/files/mz6r0pg6.jpeg',
-    icon: 'https://cdn.ryuzei.xyz/files/ddj5167z.jpeg',
+    banner: 'https://files.catbox.moe/ap1laf.jpg',
+    icon: 'https://files.catbox.moe/ap1laf.jpg',
     coin: '¥enes'
 };
 
