@@ -5,6 +5,28 @@ import chalk from 'chalk';
 import { broadcast } from '#index';
 import { LRUCache } from 'lru-cache';
 import * as linkify from 'linkifyjs';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const dbPath = path.resolve('./database/inactivos.json');
+
+function registrarActividad(chat: string, sender: string, isGroup: boolean) {
+    if (!isGroup) return;
+    try {
+        if (!fs.existsSync('./database')) {
+            fs.mkdirSync('./database', { recursive: true });
+        }
+        let data: any = {};
+        if (fs.existsSync(dbPath)) {
+            data = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
+        }
+        if (!data[chat]) data[chat] = {};
+        data[chat][sender] = Date.now();
+        fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+    } catch (e) {
+        console.error("Error guardando actividad:", e);
+    }
+}
 
 const handlerConfig = (config as any)?.handler || {};
 const metaTtlMs = handlerConfig.metaTtl || 300000;
@@ -177,6 +199,11 @@ export const handler = async (sock: any, rawMsg: any): Promise<any> => {
         realJidResult = UserJid(sock, chat, realJidResult) || realJidResult;
     } catch {}
 
+    // Registra la última actividad de los usuarios en grupos para el comando .inactivos
+    if (isGroup && realJidResult) {
+        registrarActividad(chat, realJidResult, isGroup);
+    }
+
     const normalizedSender = normalizeNumber(realJidResult);
     const normalizedMsgSender = normalizeNumber(msgSender);
 
@@ -292,9 +319,11 @@ export const handler = async (sock: any, rawMsg: any): Promise<any> => {
         });
         return msg.reply('ׅ  ׄ  ✿ Este comando solo puede ser utilizado por el dueño del bot.');
     }
-    if (cmd.group && !isGroup) {
-        return msg.reply('ׅ  ׄ  ✿ Este comando solo se puede usar en grupos.');
-    }
+
+    // Restricción de solo grupos desactivada para que funcione también en contactos privados:
+    // if (cmd.group && !isGroup) {
+    //     return msg.reply('ׅ  ׄ  ✿ Este comando solo se puede usar en grupos.');
+    // }
 
     const onlyAdminEnabled = currentChatDb.adminonly === true;
     if (onlyAdminEnabled && !isAdmins && !isOwner) {
